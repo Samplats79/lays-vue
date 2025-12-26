@@ -1,6 +1,6 @@
 <script setup>
 defineProps({
-  bag: Object
+  bag: Object,
 });
 </script>
 
@@ -10,7 +10,7 @@ defineProps({
     <div style="font-size: 14px; opacity: 0.7;">
       Color: {{ bag.bagColor }} •
       Pattern: {{ bag.pattern }} •
-      Packaging: {{ bag.packaging }}
+      Font: {{ bag.font }}
     </div>
   </li>
 </template>
