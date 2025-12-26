@@ -6,10 +6,10 @@ const emit = defineEmits(["created"]);
 
 const API_URL = import.meta.env.VITE_API_URL;
 
+// form state
 const name = ref("");
 const bagColor = ref("yellow");
 const pattern = ref("dots");
-const packaging = ref("classic");
 const font = ref("bold");
 
 const loading = ref(false);
@@ -27,7 +27,6 @@ const submit = async () => {
         name: name.value,
         bagColor: bagColor.value,
         pattern: pattern.value,
-        packaging: packaging.value,
         font: font.value,
       }),
     });
@@ -37,10 +36,10 @@ const submit = async () => {
       throw new Error(text || "Failed to create bag");
     }
 
+    // reset form
     name.value = "";
     bagColor.value = "yellow";
     pattern.value = "dots";
-    packaging.value = "classic";
     font.value = "bold";
 
     emit("created");
@@ -58,7 +57,6 @@ const submit = async () => {
     :name="name"
     :bagColor="bagColor"
     :pattern="pattern"
-    :packaging="packaging"
     :font="font"
   />
 
@@ -85,12 +83,6 @@ const submit = async () => {
         <option value="dots">dots</option>
         <option value="stripes">stripes</option>
         <option value="plain">plain</option>
-      </select>
-
-      <select v-model="packaging" style="padding: 10px;">
-        <option value="classic">classic</option>
-        <option value="premium">premium</option>
-        <option value="party">party</option>
       </select>
 
       <select v-model="font" style="padding: 10px;">
