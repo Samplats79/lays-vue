@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from "vue";
+import BagPreview from "./BagPreview.vue";
 
 const emit = defineEmits(["created"]);
 
@@ -9,8 +10,7 @@ const name = ref("");
 const bagColor = ref("yellow");
 const pattern = ref("dots");
 const packaging = ref("classic");
-const font = ref('bold') 
-
+const font = ref("bold");
 
 const loading = ref(false);
 const error = ref("");
@@ -28,7 +28,7 @@ const submit = async () => {
         bagColor: bagColor.value,
         pattern: pattern.value,
         packaging: packaging.value,
-        font: font.value
+        font: font.value,
       }),
     });
 
@@ -41,8 +41,9 @@ const submit = async () => {
     bagColor.value = "yellow";
     pattern.value = "dots";
     packaging.value = "classic";
+    font.value = "bold";
 
-    emit("created"); 
+    emit("created");
   } catch (err) {
     error.value = err.message;
   } finally {
@@ -52,6 +53,15 @@ const submit = async () => {
 </script>
 
 <template>
+  <!-- ✅ LIVE PREVIEW -->
+  <BagPreview
+    :name="name"
+    :bagColor="bagColor"
+    :pattern="pattern"
+    :packaging="packaging"
+    :font="font"
+  />
+
   <section style="max-width: 520px; margin: 0 auto 30px;">
     <h2 style="text-align:center;">Nieuwe bag toevoegen</h2>
 
@@ -81,6 +91,12 @@ const submit = async () => {
         <option value="classic">classic</option>
         <option value="premium">premium</option>
         <option value="party">party</option>
+      </select>
+
+      <select v-model="font" style="padding: 10px;">
+        <option value="bold">bold</option>
+        <option value="regular">regular</option>
+        <option value="italic">italic</option>
       </select>
 
       <button :disabled="loading" style="padding: 10px; cursor:pointer;">
