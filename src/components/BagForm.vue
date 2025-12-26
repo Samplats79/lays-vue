@@ -9,6 +9,8 @@ const name = ref("");
 const bagColor = ref("yellow");
 const pattern = ref("dots");
 const packaging = ref("classic");
+const font = ref('bold') 
+
 
 const loading = ref(false);
 const error = ref("");
@@ -26,6 +28,7 @@ const submit = async () => {
         bagColor: bagColor.value,
         pattern: pattern.value,
         packaging: packaging.value,
+        font: font.value
       }),
     });
 
@@ -34,13 +37,12 @@ const submit = async () => {
       throw new Error(text || "Failed to create bag");
     }
 
-    // reset form
     name.value = "";
     bagColor.value = "yellow";
     pattern.value = "dots";
     packaging.value = "classic";
 
-    emit("created"); // App.vue laat opnieuw laden
+    emit("created"); 
   } catch (err) {
     error.value = err.message;
   } finally {
