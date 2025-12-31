@@ -4,12 +4,12 @@
       <h1>Login</h1>
 
       <label>Email</label>
-      <input v-model="email" type="email" autocomplete="username" />
+      <input v-model.trim="email" type="email" autocomplete="username" />
 
       <label>Password</label>
-      <input v-model="password" type="password" autocomplete="current-password" />
+      <input v-model.trim="password" type="password" autocomplete="current-password" />
 
-      <button @click="login" :disabled="loading">
+      <button @click="login" :disabled="loading || !email || !password">
         {{ loading ? "Bezig..." : "Login" }}
       </button>
 
@@ -38,9 +38,11 @@ export default {
       this.loading = true;
 
       try {
-        const API = import.meta.env.VITE_API_URL; // bv: https://lays-api-yvwa.onrender.com
+        // .env => VITE_API_URL=https://lays-api-yvwa.onrender.com/api/v1
+        const API = import.meta.env.VITE_API_URL;
 
-        const res = await fetch(`${API}/api/v1/user/auth`, {
+        // ✅ BELANGRIJK: NIET /api/v1 nog eens toevoegen
+        const res = await fetch(`${API}/user/auth`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -53,16 +55,21 @@ export default {
 
         if (!res.ok) {
           this.error = data?.message || `Login mislukt (${res.status})`;
-          this.loading = false;
           return;
         }
 
-        localStorage.setItem("token", data.token);
+        const token = data?.token || data?.accessToken;
+        if (!token) {
+          this.error = "Geen token ontvangen van API";
+          return;
+        }
+
+        localStorage.setItem("token", token);
         this.ok = "Login OK – token opgeslagen";
 
+        // Redirect naar ThreeJS en token meegeven in query
         const THREE = import.meta.env.VITE_THREE_URL; // bv: https://lays-threejs.vercel.app
-        window.location.href = `${THREE}?token=${encodeURIComponent(data.token)}`;
-
+        window.location.href = `${THREE}?token=${encodeURIComponent(token)}`;
       } catch (e) {
         this.error = "API niet bereikbaar";
       } finally {
@@ -79,9 +86,10 @@ export default {
   display: grid;
   place-items: center;
   background: #fff;
+  padding: 24px;
 }
 .card {
-  width: 420px;
+  width: min(420px, 100%);
   padding: 28px;
   border-radius: 18px;
   border: 1px solid rgba(0,0,0,.1);
