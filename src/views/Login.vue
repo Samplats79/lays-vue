@@ -4,10 +4,10 @@
       <h1>Login</h1>
 
       <label>Email</label>
-      <input v-model="email" type="email" />
+      <input v-model="email" type="email" autocomplete="username" />
 
       <label>Password</label>
-      <input v-model="password" type="password" />
+      <input v-model="password" type="password" autocomplete="current-password" />
 
       <button @click="login" :disabled="loading">
         {{ loading ? "Bezig..." : "Login" }}
@@ -24,37 +24,23 @@ export default {
   name: "LoginView",
   data() {
     return {
-      email: "",
-      password: "",
+      email: "admin@admin.com",
+      password: "Admin",
       loading: false,
       error: "",
       ok: "",
     };
   },
   methods: {
-    buildAuthUrl() {
-      // env bv:
-      // 1) https://lays-api-yvwa.onrender.com
-      // 2) https://lays-api-yvwa.onrender.com/api/v1
-      const raw = import.meta.env.VITE_API_URL || "";
-      const base = raw.replace(/\/+$/, ""); // trailing slashes weg
-
-      // als base al eindigt op /api/v1 => plak alleen /user/auth
-      if (base.endsWith("/api/v1")) return `${base}/user/auth`;
-
-      // anders => voeg /api/v1 toe
-      return `${base}/api/v1/user/auth`;
-    },
-
     async login() {
       this.error = "";
       this.ok = "";
       this.loading = true;
 
       try {
-        const url = this.buildAuthUrl();
+        const API = import.meta.env.VITE_API_URL; // bv: https://lays-api-yvwa.onrender.com
 
-        const res = await fetch(url, {
+        const res = await fetch(`${API}/api/v1/user/auth`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -66,22 +52,20 @@ export default {
         const data = await res.json().catch(() => ({}));
 
         if (!res.ok) {
-          this.error = `Login mislukt (${res.status})`;
-          this.loading = false;
-          return;
-        }
-
-        if (!data.token) {
-          this.error = "Login OK maar geen token ontvangen";
+          this.error = data?.message || `Login mislukt (${res.status})`;
           this.loading = false;
           return;
         }
 
         localStorage.setItem("token", data.token);
         this.ok = "Login OK – token opgeslagen";
-        this.loading = false;
+
+        const THREE = import.meta.env.VITE_THREE_URL; // bv: https://lays-threejs.vercel.app
+        window.location.href = `${THREE}?token=${encodeURIComponent(data.token)}`;
+
       } catch (e) {
         this.error = "API niet bereikbaar";
+      } finally {
         this.loading = false;
       }
     },
@@ -94,31 +78,35 @@ export default {
   min-height: 100vh;
   display: grid;
   place-items: center;
+  background: #fff;
 }
 .card {
-  width: 360px;
-  padding: 20px;
-  border-radius: 16px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  width: 420px;
+  padding: 28px;
+  border-radius: 18px;
+  border: 1px solid rgba(0,0,0,.1);
   display: grid;
-  gap: 10px;
+  gap: 12px;
+  box-shadow: 0 18px 40px rgba(0,0,0,0.08);
+}
+h1 { font-size: 44px; margin-bottom: 8px; }
+label { font-weight: 700; }
+input {
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,.2);
+  outline: none;
 }
 button {
-  padding: 12px;
-  border-radius: 12px;
+  margin-top: 6px;
+  padding: 14px;
+  border-radius: 14px;
   border: 0;
   background: #ffd000;
-  font-weight: 700;
+  font-weight: 800;
   cursor: pointer;
 }
-button:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-.error {
-  color: #b91c1c;
-}
-.ok {
-  color: #166534;
-}
+button:disabled { opacity: .6; cursor: not-allowed; }
+.error { color: #b91c1c; font-weight: 700; }
+.ok { color: #166534; font-weight: 700; }
 </style>
