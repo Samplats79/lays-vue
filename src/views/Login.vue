@@ -4,10 +4,10 @@
       <h1>Login</h1>
 
       <label>Email</label>
-      <input v-model="email" type="email" placeholder="admin@admin.com" />
+      <input v-model="email" type="email" />
 
       <label>Password</label>
-      <input v-model="password" type="password" placeholder="Admin" />
+      <input v-model="password" type="password" />
 
       <button @click="login" :disabled="loading">
         {{ loading ? "Bezig..." : "Login" }}
@@ -32,15 +32,29 @@ export default {
     };
   },
   methods: {
+    buildAuthUrl() {
+      // env bv:
+      // 1) https://lays-api-yvwa.onrender.com
+      // 2) https://lays-api-yvwa.onrender.com/api/v1
+      const raw = import.meta.env.VITE_API_URL || "";
+      const base = raw.replace(/\/+$/, ""); // trailing slashes weg
+
+      // als base al eindigt op /api/v1 => plak alleen /user/auth
+      if (base.endsWith("/api/v1")) return `${base}/user/auth`;
+
+      // anders => voeg /api/v1 toe
+      return `${base}/api/v1/user/auth`;
+    },
+
     async login() {
       this.error = "";
       this.ok = "";
       this.loading = true;
 
-      const API = import.meta.env.VITE_API_URL; // moet eindigen op /api/v1
-
       try {
-        const res = await fetch(`${API}/user/auth`, {
+        const url = this.buildAuthUrl();
+
+        const res = await fetch(url, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -52,22 +66,22 @@ export default {
         const data = await res.json().catch(() => ({}));
 
         if (!res.ok) {
-          this.error = data?.message || `Login mislukt (${res.status})`;
+          this.error = `Login mislukt (${res.status})`;
           this.loading = false;
           return;
         }
 
-        if (!data?.token) {
-          this.error = "Geen token teruggekregen van API";
+        if (!data.token) {
+          this.error = "Login OK maar geen token ontvangen";
           this.loading = false;
           return;
         }
 
         localStorage.setItem("token", data.token);
         this.ok = "Login OK – token opgeslagen";
+        this.loading = false;
       } catch (e) {
-        this.error = "API niet bereikbaar (check VITE_API_URL / CORS)";
-      } finally {
+        this.error = "API niet bereikbaar";
         this.loading = false;
       }
     },
@@ -80,8 +94,6 @@ export default {
   min-height: 100vh;
   display: grid;
   place-items: center;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
-  background: #fff;
 }
 .card {
   width: 360px;
@@ -91,11 +103,6 @@ export default {
   display: grid;
   gap: 10px;
 }
-input {
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid rgba(0,0,0,.2);
-}
 button {
   padding: 12px;
   border-radius: 12px;
@@ -104,7 +111,14 @@ button {
   font-weight: 700;
   cursor: pointer;
 }
-button:disabled { opacity: .7; cursor: not-allowed; }
-.error { color: #b91c1c; }
-.ok { color: #166534; }
+button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+.error {
+  color: #b91c1c;
+}
+.ok {
+  color: #166534;
+}
 </style>
