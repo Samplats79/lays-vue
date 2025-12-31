@@ -4,10 +4,10 @@
       <h1>Login</h1>
 
       <label>Email</label>
-      <input v-model="email" type="email" />
+      <input v-model="email" type="email" placeholder="admin@admin.com" />
 
       <label>Password</label>
-      <input v-model="password" type="password" />
+      <input v-model="password" type="password" placeholder="Admin" />
 
       <button @click="login" :disabled="loading">
         {{ loading ? "Bezig..." : "Login" }}
@@ -37,11 +37,10 @@ export default {
       this.ok = "";
       this.loading = true;
 
-      try {
-        const RAW = import.meta.env.VITE_API_URL; // vb: https://lays-api... of https://lays-api.../api/v1
-        const BASE = RAW.endsWith("/api/v1") ? RAW : `${RAW}/api/v1`;
+      const API = import.meta.env.VITE_API_URL; // moet eindigen op /api/v1
 
-        const res = await fetch(`${BASE}/user/auth`, {
+      try {
+        const res = await fetch(`${API}/user/auth`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -50,21 +49,25 @@ export default {
           }),
         });
 
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
 
         if (!res.ok) {
-          this.error = data?.message || "Login mislukt";
+          this.error = data?.message || `Login mislukt (${res.status})`;
           this.loading = false;
           return;
         }
 
-        // BELANGRIJK: dezelfde key als ThreeJS checkt
-        localStorage.setItem("token", data.token);
+        if (!data?.token) {
+          this.error = "Geen token teruggekregen van API";
+          this.loading = false;
+          return;
+        }
 
-        this.ok = "Login OK – token opgeslagen in localStorage";
-        this.loading = false;
+        localStorage.setItem("token", data.token);
+        this.ok = "Login OK – token opgeslagen";
       } catch (e) {
-        this.error = "API niet bereikbaar";
+        this.error = "API niet bereikbaar (check VITE_API_URL / CORS)";
+      } finally {
         this.loading = false;
       }
     },
@@ -77,6 +80,8 @@ export default {
   min-height: 100vh;
   display: grid;
   place-items: center;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  background: #fff;
 }
 .card {
   width: 360px;
@@ -86,17 +91,20 @@ export default {
   display: grid;
   gap: 10px;
 }
+input {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,.2);
+}
 button {
   padding: 12px;
   border-radius: 12px;
   border: 0;
   background: #ffd000;
   font-weight: 700;
+  cursor: pointer;
 }
-.error {
-  color: #b91c1c;
-}
-.ok {
-  color: #166534;
-}
+button:disabled { opacity: .7; cursor: not-allowed; }
+.error { color: #b91c1c; }
+.ok { color: #166534; }
 </style>
