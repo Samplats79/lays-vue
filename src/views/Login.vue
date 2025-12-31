@@ -38,7 +38,10 @@ export default {
       this.loading = true;
 
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/user/auth`, {
+        const RAW = import.meta.env.VITE_API_URL; // vb: https://lays-api... of https://lays-api.../api/v1
+        const BASE = RAW.endsWith("/api/v1") ? RAW : `${RAW}/api/v1`;
+
+        const res = await fetch(`${BASE}/user/auth`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -55,8 +58,10 @@ export default {
           return;
         }
 
+        // BELANGRIJK: dezelfde key als ThreeJS checkt
         localStorage.setItem("token", data.token);
-        this.ok = "Login OK – token opgeslagen";
+
+        this.ok = "Login OK – token opgeslagen in localStorage";
         this.loading = false;
       } catch (e) {
         this.error = "API niet bereikbaar";
@@ -77,7 +82,7 @@ export default {
   width: 360px;
   padding: 20px;
   border-radius: 16px;
-  border: 1px solid rgba(0,0,0,.1);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   display: grid;
   gap: 10px;
 }
@@ -88,6 +93,10 @@ button {
   background: #ffd000;
   font-weight: 700;
 }
-.error { color: #b91c1c; }
-.ok { color: #166534; }
+.error {
+  color: #b91c1c;
+}
+.ok {
+  color: #166534;
+}
 </style>
