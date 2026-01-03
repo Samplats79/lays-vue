@@ -35,7 +35,7 @@ export default {
       font-family: 'Poppins', system-ui, Avenir, Helvetica, Arial, sans-serif;
 
   }
-  
+
 .page {
   min-height: 100vh;
   width: 100vw;
@@ -56,7 +56,7 @@ export default {
 }
 
 h1 {
-  font-size: 48px;
+  font-size: 45px;
   font-weight: 900;
   color: #d71920; 
   margin-bottom: 12px;
