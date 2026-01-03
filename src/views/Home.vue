@@ -13,7 +13,7 @@
     </p>
 
     <div class="actions">
-      <router-link to="/login" class="btn primary">
+      <router-link to="/auth" class="btn primary">
         Create my own bag
       </router-link>
 
