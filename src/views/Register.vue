@@ -7,18 +7,13 @@
       <p class="subtitle">Maak een account aan om jouw chips bag te maken en te saven.</p>
 
       <label>Name</label>
-      <input v-model.trim="name" type="text" placeholder="Your name" autocomplete="name" />
+      <input v-model.trim="name" type="text" placeholder="Jouw naam" />
 
       <label>Email</label>
-      <input v-model.trim="email" type="email" placeholder="you@email.com" autocomplete="username" />
+      <input v-model.trim="email" type="email" autocomplete="username" placeholder="jij@email.com" />
 
       <label>Password</label>
-      <input
-        v-model="password"
-        type="password"
-        placeholder="Min. 6 tekens"
-        autocomplete="new-password"
-      />
+      <input v-model="password" type="password" autocomplete="new-password" placeholder="••••••••" />
 
       <button class="btn solid" @click="register" :disabled="loading || !name || !email || !password">
         <span v-if="loading" class="spinner"></span>
@@ -27,6 +22,11 @@
 
       <p v-if="error" class="msg error">{{ error }}</p>
       <p v-if="ok" class="msg ok">{{ ok }}</p>
+
+      <div class="actions">
+        <router-link to="/" class="btn outline">← Home</router-link>
+        <router-link to="/login" class="btn outline">Log in</router-link>
+      </div>
 
       <p class="switch">
         Heb je al een account?
@@ -50,51 +50,39 @@ export default {
     };
   },
   methods: {
+    normalizeBase(url) {
+      return (url || "").trim().replace(/\/+$/, "");
+    },
     async register() {
       this.error = "";
       this.ok = "";
       this.loading = true;
 
       try {
-        const API = import.meta.env.VITE_API_URL;
+        const API = this.normalizeBase(import.meta.env.VITE_API_URL);
         if (!API) throw new Error("VITE_API_URL ontbreekt in .env");
 
-        const candidates = [
-          { url: `${API}/api/v1/user/register`, body: { name: this.name, email: this.email, password: this.password } },
-          { url: `${API}/api/v1/user/signup`, body: { name: this.name, email: this.email, password: this.password } },
-        ];
+        const res = await fetch(`${API}/user/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: this.name,
+            email: this.email,
+            password: this.password,
+          }),
+        });
 
-        let res = null;
-        let data = null;
-
-        for (const c of candidates) {
-          res = await fetch(c.url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(c.body),
-          });
-
-          data = await res.json().catch(() => ({}));
-
-          if (res.ok) break;
-
-          if (res.status !== 404) break;
-        }
+        const data = await res.json().catch(() => ({}));
 
         if (!res.ok) {
           this.error = data?.message || `Account aanmaken mislukt (${res.status})`;
           return;
         }
 
-        if (data?.token) {
-          localStorage.setItem("token", data.token);
-          this.ok = "Account gemaakt ✓ Je bent ingelogd.";
-          this.$router.push("/configurator");
-          return;
-        }
-
-        this.ok = "Account gemaakt ✓ Je kan nu inloggen.";
-        this.$router.push("/login");
+        this.ok = "Account aangemaakt! Je kan nu inloggen.";
+        setTimeout(() => {
+          this.$router.push("/login");
+        }, 700);
       } catch (e) {
         this.error = e?.message || "API niet bereikbaar";
       } finally {
@@ -107,7 +95,7 @@ export default {
 
 <style scoped>
 .page {
-  font-family: 'Poppins', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: "Poppins", system-ui, Avenir, Helvetica, Arial, sans-serif;
   min-height: 100vh;
   display: grid;
   place-items: center;
@@ -130,7 +118,7 @@ export default {
   width: 150px;
   margin: 0 auto 6px;
   display: block;
-  filter: drop-shadow(0 10px 18px rgba(0,0,0,.15));
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.15));
 }
 
 h1 {
@@ -145,13 +133,13 @@ h1 {
 .subtitle {
   margin: -6px 0 8px;
   text-align: center;
-  color: rgba(0,0,0,.65);
+  color: rgba(0, 0, 0, 0.65);
   font-weight: 600;
 }
 
 label {
   font-weight: 800;
-  color: rgba(0,0,0,.8);
+  color: rgba(0, 0, 0, 0.8);
 }
 
 input {
@@ -173,6 +161,7 @@ input:focus {
   padding: 14px 16px;
   border-radius: 999px;
   font-weight: 900;
+  text-decoration: none;
   border: 2px solid transparent;
   cursor: pointer;
   display: inline-flex;
@@ -196,6 +185,16 @@ input:focus {
   filter: brightness(1.05);
 }
 
+.btn.outline {
+  background: rgba(255, 255, 255, 0.85);
+  color: #b10f0f;
+  border-color: rgba(177, 15, 15, 0.7);
+}
+
+.btn.outline:hover {
+  filter: brightness(1.03);
+}
+
 .btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -205,13 +204,15 @@ input:focus {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  border: 3px solid rgba(255,255,255,.35);
+  border: 3px solid rgba(255, 255, 255, 0.35);
   border-top-color: #fff;
   animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .msg {
@@ -220,14 +221,27 @@ input:focus {
   text-align: center;
 }
 
-.error { color: #b10f0f; }
-.ok { color: #166534; }
+.error {
+  color: #b10f0f;
+}
+
+.ok {
+  color: #166534;
+}
+
+.actions {
+  margin-top: 8px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
 
 .switch {
   margin-top: 6px;
   text-align: center;
   font-weight: 800;
-  color: rgba(0,0,0,.65);
+  color: rgba(0, 0, 0, 0.65);
 }
 
 .link {
@@ -235,6 +249,7 @@ input:focus {
   text-decoration: none;
   font-weight: 900;
 }
+
 .link:hover {
   text-decoration: underline;
 }
