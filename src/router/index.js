@@ -11,7 +11,6 @@ const routes = [
     name: "login",
     component: () => import("../views/Login.vue"),
   },
-  // placeholder (maken we later echt)
   {
     path: "/community",
     name: "community",
