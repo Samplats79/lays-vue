@@ -56,7 +56,7 @@ export default {
 }
 
 h1 {
-  font-size: 45px;
+  font-size: 40px;
   font-weight: 900;
   color: #d71920; 
   margin-bottom: 12px;
@@ -87,10 +87,6 @@ h1 {
 .btn.primary {
   background: #d71920;
   color: #fff;
-}
-
-.btn.primary:hover {
-  background: #b3151a;
 }
 
 .btn.outline {
