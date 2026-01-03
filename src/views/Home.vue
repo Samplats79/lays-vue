@@ -31,11 +31,6 @@ export default {
 </script>
 
 <style scoped>
-  main{
-      font-family: 'Poppins', system-ui, Avenir, Helvetica, Arial, sans-serif;
-
-  }
-
 .page {
   min-height: 100vh;
   width: 100vw;
@@ -45,9 +40,8 @@ export default {
   justify-content: center;
   background: linear-gradient(180deg, #ffd400 0%, #fff2b3 100%);
   text-align: center;
-
-  margin: 0;
-  padding: 0;
+  padding: 24px;
+  font-family: 'Poppins', system-ui, Avenir, Helvetica, Arial, sans-serif;
 }
 
 .logo {
@@ -58,7 +52,7 @@ export default {
 h1 {
   font-size: 42px;
   font-weight: 900;
-  color: #d71920; 
+  color: #d71920;
   margin-bottom: 12px;
 }
 
@@ -73,27 +67,39 @@ h1 {
   display: flex;
   gap: 16px;
   flex-wrap: wrap;
+  justify-content: center;
 }
 
 .btn {
-  padding: 14px 26px;
+  padding: 14px 28px;
   border-radius: 999px;
-  font-weight: 800;
-  text-decoration: none;
+  font-weight: 900;
   font-size: 16px;
+  text-decoration: none;
   transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn.primary {
   background: #d71920;
   color: #fff;
+  border: 2px solid #d71920;
 }
 
+.btn.primary:hover {
+  filter: brightness(1.05);
+}
 
 .btn.outline {
- background: rgba(255,255,255,.85);
+  background: rgba(255, 255, 255, 0.95);
   color: #b10f0f;
-  border-color: rgba(177, 15, 15, 0.7);
+  border: 2px solid #b10f0f;
 }
 
+.btn.outline:hover {
+  background: #fff;
+  filter: brightness(1.02);
+}
 </style>
