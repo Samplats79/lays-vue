@@ -22,7 +22,11 @@
         placeholder="••••••••"
       />
 
-      <button class="btn solid" @click="login" :disabled="loading || !email || !password">
+      <button
+        class="btn solid"
+        @click="login"
+        :disabled="loading || !email || !password"
+      >
         <span v-if="loading" class="spinner"></span>
         {{ loading ? "Bezig..." : "Login" }}
       </button>
@@ -56,34 +60,22 @@ export default {
     };
   },
   methods: {
-    normalizeApiBase(apiBase) {
-    
-      return (apiBase || "").replace(/\/+$/, "");
+    normalizeBase(url) {
+      return (url || "").trim().replace(/\/+$/, "");
     },
-
-    buildAuthUrl(apiBase) {
-      const base = this.normalizeApiBase(apiBase);
-
-      if (base.endsWith("/api/v1")) return `${base}/user/auth`;
-
-      return `${base}/api/v1/user/auth`;
-    },
-
     async login() {
       this.error = "";
       this.ok = "";
       this.loading = true;
 
       try {
-        const API = import.meta.env.VITE_API_URL;      // bv: https://lays-api-yvwa.onrender.com  (of met /api/v1)
-        const THREE = import.meta.env.VITE_THREE_URL;  // bv: https://lays-threejs.vercel.app
+        const API = this.normalizeBase(import.meta.env.VITE_API_URL);
+        const THREE = this.normalizeBase(import.meta.env.VITE_THREE_URL);
 
         if (!API) throw new Error("VITE_API_URL ontbreekt in .env");
         if (!THREE) throw new Error("VITE_THREE_URL ontbreekt in .env");
 
-        const url = this.buildAuthUrl(API);
-
-        const res = await fetch(url, {
+        const res = await fetch(`${API}/user/auth`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
