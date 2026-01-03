@@ -19,7 +19,7 @@
         v-model="password"
         type="password"
         autocomplete="current-password"
-        placeholder="••••••••"
+        placeholder="Admin"
       />
 
       <button
@@ -36,13 +36,7 @@
 
       <div class="actions">
         <router-link to="/" class="btn outline">← Home</router-link>
-        <router-link to="/register" class="btn outline">Create account</router-link>
       </div>
-
-      <p class="switch">
-        Nog geen account?
-        <router-link class="link" to="/register">Maak er eentje</router-link>
-      </p>
     </div>
   </div>
 </template>
@@ -52,8 +46,8 @@ export default {
   name: "LoginView",
   data() {
     return {
-      email: "admin@admin.com",
-      password: "Admin",
+      email: "",
+      password: "",
       loading: false,
       error: "",
       ok: "",
@@ -252,22 +246,5 @@ input:focus {
   gap: 10px;
   justify-content: center;
   flex-wrap: wrap;
-}
-
-.switch {
-  margin-top: 6px;
-  text-align: center;
-  font-weight: 800;
-  color: rgba(0, 0, 0, 0.65);
-}
-
-.link {
-  color: #b10f0f;
-  text-decoration: none;
-  font-weight: 900;
-}
-
-.link:hover {
-  text-decoration: underline;
 }
 </style>
