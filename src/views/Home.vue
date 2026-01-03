@@ -96,6 +96,8 @@ h1 {
   background: rgba(255, 255, 255, 0.95);
   color: #b10f0f;
   border: 2px solid #b10f0f;
+  border-color: rgba(177, 15, 15, 0.7);
+
 }
 
 .btn.outline:hover {
