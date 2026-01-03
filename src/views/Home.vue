@@ -1,4 +1,5 @@
 <template>
+  <body>
   <div class="home">
     <img
       src="@/assets/images/laysLogo.png"
@@ -21,6 +22,7 @@
       </router-link>
     </div>
   </div>
+   </body>
 </template>
 
 <script>
@@ -30,6 +32,10 @@ export default {
 </script>
 
 <style scoped>
+
+  body {
+    background: linear-gradient(180deg, #ffd400 0%, #fff6c2 100%);
+  }
 .home {
   font-family: 'Poppins', system-ui, Avenir, Helvetica, Arial, sans-serif;
   min-height: 100vh;
@@ -37,7 +43,6 @@ export default {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(180deg, #ffd400 0%, #fff6c2 100%);
   text-align: center;
   padding: 24px;
 }
