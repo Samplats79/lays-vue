@@ -5,7 +5,7 @@
       alt="Lay's logo"
       class="logo"
     />
-
+    
     <h1>Create your perfect chips bag</h1>
 
     <p class="subtitle">

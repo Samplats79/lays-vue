@@ -9,80 +9,66 @@
 
         <div class="actions">
           <router-link class="btn outline" to="/">← Home</router-link>
-          <router-link class="btn solid" to="/configurator">Create my own bag</router-link>
+          <router-link class="btn solid" to="/login">Create my own bag</router-link>
+          <button class="btn outline" type="button" @click="loadBags" :disabled="loading">
+            {{ loading ? "Loading..." : "Refresh" }}
+          </button>
         </div>
       </header>
 
       <section class="card">
-        <div class="toolbar">
-          <button class="btn small outline" @click="loadBags" :disabled="loading">
-            {{ loading ? "Loading..." : "Refresh" }}
-          </button>
-
-          <div class="hint" v-if="!hasToken">
-            Je bent niet ingelogd → votes kunnen mislukken als de API auth vereist.
-          </div>
-          <div class="hint ok" v-else>
-            Token gevonden ✓ je kan voten.
-          </div>
-        </div>
+        <p class="hint" v-if="!token">
+          Je bent niet ingelogd → votes kunnen mislukken als de API auth vereist.
+        </p>
 
         <p v-if="error" class="msg error">{{ error }}</p>
 
-        <div v-if="loading" class="wip">
-          <h2>Even laden…</h2>
-          <p>We halen de community bags op.</p>
-        </div>
-
-        <div v-else-if="bags.length === 0" class="wip">
+        <div v-if="!loading && bags.length === 0 && !error" class="empty">
           <h2>Nog geen bags</h2>
           <p>Er staan nog geen opgeslagen chips bags in de database (of de endpoint klopt niet).</p>
         </div>
 
-        <div v-else class="grid">
-          <article v-for="bag in sortedBags" :key="bag._id || bag.id" class="bag">
-            <div class="bagTop">
-              <div class="badge">
-                <span class="dot" :style="{ background: bag.color || '#d71920' }"></span>
-                <span class="badgeText">{{ bag.color || "unknown color" }}</span>
-              </div>
+        <div v-if="loading" class="loadingBox">
+          <p>Even laden...</p>
+        </div>
 
-              <div class="votes">
-                <span class="heart">♥</span>
-                <span class="votesNum">{{ bag.votes ?? bag.likes ?? 0 }}</span>
+        <div v-if="bags.length > 0" class="grid">
+          <article v-for="bag in bags" :key="bag._id" class="bag">
+            <div class="bagTop">
+              <h3 class="bagTitle">{{ bag.name || "Unnamed bag" }}</h3>
+              <span class="badge">{{ formatDate(bag.createdAt) }}</span>
+            </div>
+
+            <div class="bagMeta">
+              <div class="metaRow">
+                <span class="k">Color</span>
+                <span class="v">{{ bag.bagColor || "-" }}</span>
+              </div>
+              <div class="metaRow">
+                <span class="k">Font</span>
+                <span class="v">{{ bag.font || "-" }}</span>
+              </div>
+              <div class="metaRow">
+                <span class="k">Pattern</span>
+                <span class="v">{{ bag.pattern || "-" }}</span>
+              </div>
+              <div class="metaRow">
+                <span class="k">User</span>
+                <span class="v">{{ bag.user || "anonymous" }}</span>
               </div>
             </div>
 
-            <h3 class="bagTitle">
-              {{ bag.name || bag.title || "Unnamed bag" }}
-            </h3>
-
-            <p class="bagMeta">
-              Font: <b>{{ bag.font || "default" }}</b>
-              <span v-if="bag.flavour || bag.flavor"> • Flavour: <b>{{ bag.flavour || bag.flavor }}</b></span>
-            </p>
-
             <div class="bagActions">
-              <button
-                class="btn solid"
-                @click="vote(bag)"
-                :disabled="votingId === (bag._id || bag.id)"
-              >
-                <span v-if="votingId === (bag._id || bag.id)" class="spinner"></span>
-                {{ votingId === (bag._id || bag.id) ? "Voting..." : "Vote" }}
+              <button class="btn solid small" type="button" @click="vote(bag)" :disabled="votingId === bag._id">
+                {{ votingId === bag._id ? "Voting..." : "❤️ Vote" }}
               </button>
 
-              <button class="btn outline" @click="openBag(bag)">
-                View
-              </button>
+              <span class="votes">
+                Votes: <b>{{ bag.votes ?? 0 }}</b>
+              </span>
             </div>
           </article>
         </div>
-
-        <p class="smallNote">
-          Tip: als votes 404 geven, stuur mij de exacte endpoint uit je backend of een screenshot van je Network tab,
-          dan fixen we dat in 1 minuut.
-        </p>
       </section>
     </div>
   </main>
@@ -96,155 +82,82 @@ export default {
       bags: [],
       loading: false,
       error: "",
-      votingId: null,
+      votingId: "",
+      token: localStorage.getItem("token") || "",
     };
-  },
-  computed: {
-    hasToken() {
-      return !!localStorage.getItem("token");
-    },
-    sortedBags() {
-      // Sorteer op votes/likes (hoog naar laag)
-      return [...this.bags].sort((a, b) => {
-        const av = (a.votes ?? a.likes ?? 0);
-        const bv = (b.votes ?? b.likes ?? 0);
-        return bv - av;
-      });
-    },
   },
   mounted() {
     this.loadBags();
   },
   methods: {
-    getApiBase() {
-      // In jouw project is VITE_API_URL meestal: https://lays-api-yvwa.onrender.com
-      const API = import.meta.env.VITE_API_URL;
-      if (!API) throw new Error("VITE_API_URL ontbreekt in .env");
-      return API;
+    normalizeBase(url) {
+      return (url || "").trim().replace(/\/+$/, "");
     },
-
     async loadBags() {
       this.error = "";
       this.loading = true;
 
       try {
-        const API = this.getApiBase();
-        const token = localStorage.getItem("token");
+        const API = this.normalizeBase(import.meta.env.VITE_API_URL);
+        if (!API) throw new Error("VITE_API_URL ontbreekt in .env");
 
-        // Waarschijnlijk jouw list endpoint (je gebruikte POST naar /api/v1/bag eerder)
-        const url = `${API}/api/v1/bag`;
-
-        const res = await fetch(url, {
-          method: "GET",
+        const res = await fetch(`${API}/bag`, {
           headers: {
             "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        });
+
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          this.error = data?.message || `Failed to fetch (${res.status})`;
+          this.bags = [];
+          return;
+        }
+
+        this.bags = Array.isArray(data) ? data : data?.bags || [];
+      } catch (e) {
+        this.error = e?.message || "Failed to fetch";
+        this.bags = [];
+      } finally {
+        this.loading = false;
+      }
+    },
+    async vote(bag) {
+      this.error = "";
+      this.votingId = bag._id;
+
+      try {
+        const API = this.normalizeBase(import.meta.env.VITE_API_URL);
+        if (!API) throw new Error("VITE_API_URL ontbreekt in .env");
+
+        const res = await fetch(`${API}/bag/${bag._id}/vote`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}),
           },
         });
 
         const data = await res.json().catch(() => ({}));
 
         if (!res.ok) {
-          this.error =
-            data?.message ||
-            `Bags ophalen mislukt (${res.status}). Check of GET ${url} bestaat.`;
-          this.bags = [];
+          this.error = data?.message || `Vote failed (${res.status})`;
           return;
         }
 
-        // data kan bv array zijn of {bags:[...]}
-        const list = Array.isArray(data) ? data : (data.bags || data.data || []);
-        this.bags = Array.isArray(list) ? list : [];
+        const updated = data?.bag || data;
+        this.bags = this.bags.map((b) => (b._id === bag._id ? { ...b, ...updated } : b));
       } catch (e) {
-        this.error = e?.message || "API niet bereikbaar";
-        this.bags = [];
+        this.error = e?.message || "Vote failed";
       } finally {
-        this.loading = false;
+        this.votingId = "";
       }
     },
-
-    async vote(bag) {
-      this.error = "";
-      const id = bag._id || bag.id;
-      if (!id) {
-        this.error = "Bag heeft geen id (kan niet voten).";
-        return;
-      }
-
-      const token = localStorage.getItem("token");
-      const API = this.getApiBase();
-
-      this.votingId = id;
-
-      try {
-        // We proberen 3 veel voorkomende endpoints (want we weten jouw exacte route nog niet)
-        const endpoints = [
-          { method: "POST", url: `${API}/api/v1/bag/${id}/vote`, body: null },
-          { method: "POST", url: `${API}/api/v1/bag/${id}/like`, body: null },
-          { method: "POST", url: `${API}/api/v1/vote`, body: { bagId: id } },
-        ];
-
-        let ok = false;
-        let updatedBag = null;
-
-        for (const ep of endpoints) {
-          const res = await fetch(ep.url, {
-            method: ep.method,
-            headers: {
-              "Content-Type": "application/json",
-              ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            },
-            body: ep.body ? JSON.stringify(ep.body) : null,
-          });
-
-          const data = await res.json().catch(() => ({}));
-
-          if (res.ok) {
-            ok = true;
-            // data kan de bijgewerkte bag teruggeven
-            updatedBag = data?.bag || data?.data || data;
-            break;
-          }
-
-          // Als het geen 404 is (bv 401), stop meteen
-          if (res.status !== 404) {
-            this.error = data?.message || `Vote mislukt (${res.status})`;
-            return;
-          }
-        }
-
-        if (!ok) {
-          this.error =
-            "Vote endpoint niet gevonden (404). Stuur mij de juiste vote route van je backend, dan passen we het aan.";
-          return;
-        }
-
-        // UI update
-        this.bags = this.bags.map((b) => {
-          const bid = b._id || b.id;
-          if (bid !== id) return b;
-
-          // Als backend updated bag teruggeeft -> gebruik die
-          if (updatedBag && (updatedBag._id || updatedBag.id)) {
-            return { ...b, ...updatedBag };
-          }
-
-          // Anders: optimistic increment
-          const current = (b.votes ?? b.likes ?? 0);
-          return { ...b, votes: current + 1 };
-        });
-      } catch (e) {
-        this.error = e?.message || "Vote request faalde";
-      } finally {
-        this.votingId = null;
-      }
-    },
-
-    openBag(bag) {
-      // Voor nu simpel: toon info (later linken we naar ThreeJS viewer)
-      const name = bag.name || bag.title || "Unnamed bag";
-      const votes = bag.votes ?? bag.likes ?? 0;
-      alert(`Bag: ${name}\nVotes: ${votes}`);
+    formatDate(iso) {
+      if (!iso) return "-";
+      const d = new Date(iso);
+      if (Number.isNaN(d.getTime())) return "-";
+      return d.toLocaleDateString();
     },
   },
 };
@@ -252,14 +165,14 @@ export default {
 
 <style scoped>
 .page {
-  font-family: 'Poppins', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: "Poppins", system-ui, Avenir, Helvetica, Arial, sans-serif;
   min-height: 100vh;
   padding: 28px 18px;
   background: linear-gradient(180deg, #ffd400 0%, #fff2b3 100%);
 }
 
 .wrap {
-  max-width: 1100px;
+  max-width: 1050px;
   margin: 0 auto;
 }
 
@@ -272,7 +185,7 @@ export default {
   width: 140px;
   margin: 0 auto 10px;
   display: block;
-  filter: drop-shadow(0 10px 18px rgba(0,0,0,.15));
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.15));
 }
 
 h1 {
@@ -285,7 +198,7 @@ h1 {
 
 .subtitle {
   margin: 6px 0 14px;
-  color: rgba(0,0,0,.7);
+  color: rgba(0, 0, 0, 0.7);
   font-weight: 600;
 }
 
@@ -296,118 +209,6 @@ h1 {
   flex-wrap: wrap;
 }
 
-.card {
-  border-radius: 22px;
-  background: rgba(255, 255, 255, 0.92);
-  border: 2px solid rgba(203, 36, 36, 0.15);
-  box-shadow: 0 18px 40px rgba(0,0,0,.12);
-  padding: 22px;
-}
-
-.toolbar {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  margin-bottom: 14px;
-}
-
-.hint {
-  font-weight: 800;
-  color: rgba(0,0,0,.65);
-  font-size: 13px;
-}
-.hint.ok {
-  color: rgba(20, 90, 40, .85);
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-}
-
-@media (max-width: 950px) {
-  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-@media (max-width: 620px) {
-  .grid { grid-template-columns: 1fr; }
-}
-
-.bag {
-  background: rgba(255,255,255,.95);
-  border: 2px solid rgba(203, 36, 36, 0.12);
-  border-radius: 18px;
-  padding: 16px;
-  box-shadow: 0 14px 26px rgba(0,0,0,.08);
-  display: grid;
-  gap: 10px;
-}
-
-.bagTop {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  border-radius: 999px;
-  background: rgba(255, 244, 210, 0.9);
-  border: 1px solid rgba(0,0,0,.08);
-}
-
-.dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  box-shadow: inset 0 0 0 2px rgba(255,255,255,.7);
-}
-
-.badgeText {
-  font-weight: 900;
-  font-size: 13px;
-  color: rgba(0,0,0,.75);
-}
-
-.votes {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-weight: 900;
-  color: rgba(0,0,0,.75);
-}
-
-.heart {
-  color: #b10f0f;
-}
-
-.bagTitle {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 900;
-  color: rgba(0,0,0,.85);
-}
-
-.bagMeta {
-  margin: 0;
-  color: rgba(0,0,0,.65);
-  font-weight: 700;
-  font-size: 14px;
-}
-
-.bagActions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-/* Buttons (zelfde theme als je andere pages) */
 .btn {
   padding: 12px 16px;
   border-radius: 999px;
@@ -419,6 +220,7 @@ h1 {
   border: 2px solid transparent;
   transition: transform 0.08s ease, filter 0.2s ease, opacity 0.2s ease;
   cursor: pointer;
+  background: transparent;
 }
 
 .btn:active {
@@ -436,7 +238,7 @@ h1 {
 }
 
 .btn.outline {
-  background: rgba(255,255,255,.85);
+  background: rgba(255, 255, 255, 0.85);
   color: #b10f0f;
   border-color: rgba(177, 15, 15, 0.7);
 }
@@ -450,56 +252,125 @@ h1 {
   font-size: 14px;
 }
 
-.btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+.card {
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 2px solid rgba(203, 36, 36, 0.15);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.12);
+  padding: 22px;
 }
 
-.spinner {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  border: 3px solid rgba(255,255,255,.35);
-  border-top-color: #fff;
-  animation: spin 0.8s linear infinite;
+.hint {
+  margin: 0 0 12px;
+  font-weight: 800;
+  color: rgba(0, 0, 0, 0.7);
+  text-align: center;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
+.msg {
+  margin: 0 0 12px;
+  font-weight: 900;
+  text-align: center;
 }
 
-.wip {
+.error {
+  color: #b10f0f;
+}
+
+.empty {
   text-align: center;
   padding: 18px 10px;
 }
 
-.wip h2 {
+.empty h2 {
   margin: 0 0 6px;
-  color: rgba(0,0,0,.85);
   font-weight: 900;
+  color: rgba(0, 0, 0, 0.85);
 }
 
-.wip p {
+.empty p {
   margin: 0;
-  color: rgba(0,0,0,.65);
+  color: rgba(0, 0, 0, 0.65);
   font-weight: 600;
 }
 
-.msg {
-  margin: 0 0 10px;
+.loadingBox {
+  text-align: center;
+  padding: 18px 10px;
+  font-weight: 800;
+}
+
+.grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.bag {
+  border-radius: 18px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.85);
+  padding: 16px;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.06);
+}
+
+.bagTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.bagTitle {
+  margin: 0;
+  font-size: 18px;
   font-weight: 900;
-  text-align: center;
+  color: rgba(0, 0, 0, 0.85);
 }
 
-.msg.error {
-  color: #b10f0f;
-}
-
-.smallNote {
-  margin-top: 14px;
+.badge {
   font-size: 12px;
-  font-weight: 700;
-  color: rgba(0,0,0,.55);
-  text-align: center;
+  font-weight: 900;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(177, 15, 15, 0.08);
+  color: #b10f0f;
+  border: 1px solid rgba(177, 15, 15, 0.15);
+  white-space: nowrap;
+}
+
+.bagMeta {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.metaRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-weight: 800;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.k {
+  opacity: 0.85;
+}
+
+.v {
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.bagActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.votes {
+  font-weight: 900;
+  color: rgba(0, 0, 0, 0.75);
 }
 </style>
