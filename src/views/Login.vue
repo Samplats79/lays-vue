@@ -113,7 +113,7 @@ export default {
 
 h1 {
   margin: 0;
-  font-size: 44px;
+  font-size: 42px;
   font-weight: 900;
   letter-spacing: -0.02em;
   color: #b10f0f; /* Lay’s red vibe */
