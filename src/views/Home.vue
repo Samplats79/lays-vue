@@ -1,19 +1,16 @@
 <template>
   <div class="home">
-    <!-- Logo -->
     <img
       src="@/assets/images/laysLogo.png"
       alt="Lays logo"
       class="logo"
     />
 
-    <!-- Titel -->
     <h1>Create your perfect chips bag</h1>
     <p class="subtitle">
       Design your own Lays bag or discover what others created
     </p>
 
-    <!-- Actieknoppen (placeholder) -->
     <div class="actions">
       <router-link to="/login" class="btn primary">
         Create my own bag
