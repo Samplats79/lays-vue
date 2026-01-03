@@ -84,7 +84,6 @@ export default {
 </script>
 
 <style scoped>
-/* Lay's palette */
 .page {
   min-height: 100vh;
   display: grid;

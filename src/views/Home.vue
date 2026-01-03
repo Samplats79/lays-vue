@@ -1,13 +1,13 @@
 <template>
-  <body>
-  <div class="home">
+  <main class="page">
     <img
       src="@/assets/images/laysLogo.png"
-      alt="Lays logo"
+      alt="Lay's logo"
       class="logo"
     />
 
     <h1>Create your perfect chips bag</h1>
+
     <p class="subtitle">
       Design your own Lays bag or discover what others created
     </p>
@@ -17,12 +17,11 @@
         Create my own bag
       </router-link>
 
-      <router-link to="/community" class="btn secondary">
+      <router-link to="/community" class="btn outline">
         View community bags
       </router-link>
     </div>
-  </div>
-   </body>
+  </main>
 </template>
 
 <script>
@@ -32,38 +31,37 @@ export default {
 </script>
 
 <style scoped>
-
-  body {
-    background: linear-gradient(180deg, #ffd400 0%, #fff6c2 100%);
-  }
-.home {
-  font-family: 'Poppins', system-ui, Avenir, Helvetica, Arial, sans-serif;
+.page {
   min-height: 100vh;
+  width: 100vw;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  background: linear-gradient(180deg, #ffd400 0%, #fff2b3 100%);
   text-align: center;
-  padding: 24px;
+
+  margin: 0;
+  padding: 0;
 }
 
 .logo {
   width: 180px;
-  margin-bottom: 24px;
+  margin-bottom: 32px;
 }
 
 h1 {
-  font-size: 42px;
+  font-size: 48px;
   font-weight: 900;
-  color: #d71920; /* Lays rood */
+  color: #d71920; 
   margin-bottom: 12px;
 }
 
 .subtitle {
   font-size: 18px;
+  color: #333;
   max-width: 420px;
   margin-bottom: 32px;
-  color: #3a3a3a;
 }
 
 .actions {
@@ -73,26 +71,31 @@ h1 {
 }
 
 .btn {
-  padding: 14px 24px;
+  padding: 14px 26px;
   border-radius: 999px;
   font-weight: 800;
   text-decoration: none;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  font-size: 16px;
+  transition: all 0.2s ease;
 }
 
-.btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(0,0,0,0.15);
-}
-
-.primary {
+.btn.primary {
   background: #d71920;
-  color: white;
+  color: #fff;
 }
 
-.secondary {
-  background: white;
-  color: #d71920;
+.btn.primary:hover {
+  background: #b3151a;
+}
+
+.btn.outline {
   border: 2px solid #d71920;
+  color: #d71920;
+  background: transparent;
+}
+
+.btn.outline:hover {
+  background: #d71920;
+  color: #fff;
 }
 </style>
