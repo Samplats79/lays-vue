@@ -1,20 +1,24 @@
 <template>
   <div class="page">
     <div class="card">
+      <img class="logo" src="/src/assets/images/laysLogo.png" alt="Lay's" />
+
       <h1>Login</h1>
+      <p class="subtitle">Log in om jouw chips bag te maken en te saven.</p>
 
       <label>Email</label>
-      <input v-model.trim="email" type="email" autocomplete="username" />
+      <input v-model.trim="email" type="email" autocomplete="username" placeholder="admin@admin.com" />
 
       <label>Password</label>
-      <input v-model="password" type="password" autocomplete="current-password" />
+      <input v-model="password" type="password" autocomplete="current-password" placeholder="••••••••" />
 
-      <button @click="login" :disabled="loading || !email || !password">
+      <button class="btn" @click="login" :disabled="loading || !email || !password">
+        <span v-if="loading" class="spinner"></span>
         {{ loading ? "Bezig..." : "Login" }}
       </button>
 
-      <p v-if="error" class="error">{{ error }}</p>
-      <p v-if="ok" class="ok">{{ ok }}</p>
+      <p v-if="error" class="msg error">{{ error }}</p>
+      <p v-if="ok" class="msg ok">{{ ok }}</p>
     </div>
   </div>
 </template>
@@ -80,61 +84,122 @@ export default {
 </script>
 
 <style scoped>
+/* Lay's palette */
 .page {
   min-height: 100vh;
   display: grid;
   place-items: center;
-  background: #fff;
+  padding: 24px;
+  background: linear-gradient(180deg, #ffd400 0%, #fff2b3 100%);
 }
 
 .card {
-  width: 420px;
+  width: min(460px, 100%);
   padding: 28px;
-  border-radius: 18px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 2px solid rgba(203, 36, 36, 0.15);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.12);
   display: grid;
   gap: 12px;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.08);
+}
+
+.logo {
+  width: 150px;
+  margin: 0 auto 6px;
+  display: block;
+  filter: drop-shadow(0 10px 18px rgba(0,0,0,.15));
 }
 
 h1 {
+  margin: 0;
   font-size: 44px;
-  margin-bottom: 8px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: #b10f0f; /* Lay’s red vibe */
+  text-align: center;
+}
+
+.subtitle {
+  margin: -6px 0 8px;
+  text-align: center;
+  color: rgba(0,0,0,.65);
+  font-weight: 600;
 }
 
 label {
-  font-weight: 700;
+  font-weight: 800;
+  color: rgba(0,0,0,.8);
 }
 
 input {
   padding: 12px 14px;
-  border-radius: 12px;
-  border: 1px solid rgba(0, 0, 0, 0.2);
-  outline: none;
-}
-
-button {
-  margin-top: 6px;
-  padding: 14px;
   border-radius: 14px;
-  border: 0;
-  background: #ffd000;
-  font-weight: 800;
-  cursor: pointer;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  outline: none;
+  background: #fff;
+  font-weight: 600;
+  transition: box-shadow 0.2s, border-color 0.2s;
 }
 
-button:disabled {
+input:focus {
+  border-color: rgba(203, 36, 36, 0.35);
+  box-shadow: 0 0 0 4px rgba(203, 36, 36, 0.12);
+}
+
+.btn {
+  margin-top: 6px;
+  padding: 14px 16px;
+  border-radius: 999px;
+  border: 2px solid #b10f0f;
+  background: #b10f0f;
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
+  transition: transform 0.08s ease, filter 0.2s ease, opacity 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.btn:hover {
+  filter: brightness(1.05);
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
+.spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 3px solid rgba(255,255,255,.35);
+  border-top-color: #fff;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.msg {
+  margin-top: 6px;
+  font-weight: 800;
+  text-align: center;
+}
+
 .error {
-  color: #b91c1c;
-  font-weight: 700;
+  color: #b10f0f;
 }
 
 .ok {
   color: #166534;
-  font-weight: 700;
 }
 </style>

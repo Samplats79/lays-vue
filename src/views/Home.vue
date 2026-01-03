@@ -31,6 +31,7 @@ export default {
 
 <style scoped>
 .home {
+  font-family: 'Poppins', system-ui, Avenir, Helvetica, Arial, sans-serif;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
