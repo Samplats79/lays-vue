@@ -85,6 +85,7 @@ export default {
 
 <style scoped>
 .page {
+  font-family: 'Poppins', system-ui, Avenir, Helvetica, Arial, sans-serif;
   min-height: 100vh;
   display: grid;
   place-items: center;

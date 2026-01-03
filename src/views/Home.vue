@@ -31,6 +31,11 @@ export default {
 </script>
 
 <style scoped>
+  main{
+      font-family: 'Poppins', system-ui, Avenir, Helvetica, Arial, sans-serif;
+
+  }
+  
 .page {
   min-height: 100vh;
   width: 100vw;

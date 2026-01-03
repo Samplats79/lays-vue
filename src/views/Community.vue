@@ -30,8 +30,8 @@ export default {
 </script>
 
 <style scoped>
-/* Lay’s vibe */
 .page {
+  font-family: 'Poppins', system-ui, Avenir, Helvetica, Arial, sans-serif;
   min-height: 100vh;
   padding: 28px 18px;
   background: linear-gradient(180deg, #ffd400 0%, #fff2b3 100%);
