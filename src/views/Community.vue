@@ -10,7 +10,12 @@
         <div class="actions">
           <router-link class="btn outline" to="/">← Home</router-link>
           <router-link class="btn solid" to="/login">Create my own bag</router-link>
-          <button class="btn outline" type="button" @click="loadBags" :disabled="loading">
+          <button
+            class="btn outline"
+            type="button"
+            @click="loadBags"
+            :disabled="loading"
+          >
             {{ loading ? "Loading..." : "Refresh" }}
           </button>
         </div>
@@ -179,6 +184,13 @@ h1 {
   font-weight: 900;
   border: 2px solid transparent;
   cursor: pointer;
+  text-decoration: none;
+}
+
+.btn:focus,
+.btn:active {
+  text-decoration: none;
+  outline: none;
 }
 
 .btn.solid {
@@ -218,14 +230,14 @@ h1 {
 
 .preview {
   height: 260px;
-  background: #ffffff;
+  background: linear-gradient(180deg, #ffffff 0%, #f4f4f4 100%);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .previewImg {
-  max-height: 220px;
+  max-height: 210px;
   max-width: 100%;
   object-fit: contain;
 }
