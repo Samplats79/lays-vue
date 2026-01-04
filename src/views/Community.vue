@@ -84,43 +84,121 @@ export default {
     normalizeBase(url) {
       return (url || "").trim().replace(/\/+$/, "");
     },
+
     async loadBags() {
       this.loading = true;
       this.error = "";
 
       try {
         const API = this.normalizeBase(import.meta.env.VITE_API_URL);
+        if (!API) {
+          this.error = "VITE_API_URL ontbreekt in .env";
+          this.bags = [];
+          return;
+        }
+
         const res = await fetch(`${API}/bag`);
-        const data = await res.json();
+        const data = await res.json().catch(() => null);
+
+        if (!res.ok) {
+          this.error = (data && data.message) ? data.message : `Kon community bags niet laden (${res.status}).`;
+          this.bags = [];
+          return;
+        }
+
         this.bags = Array.isArray(data) ? data : [];
-      } catch {
+      } catch (e) {
         this.error = "Kon community bags niet laden.";
+        this.bags = [];
       } finally {
         this.loading = false;
       }
     },
+
     async vote(bag) {
       this.votingId = bag._id;
       this.error = "";
 
       try {
         const API = this.normalizeBase(import.meta.env.VITE_API_URL);
-        const res = await fetch(`${API}/bag/${bag._id}/vote`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}),
-          },
-        });
+        if (!API) throw new Error("VITE_API_URL ontbreekt in .env");
 
-        const data = await res.json();
-        if (!res.ok) throw new Error();
+    
+        const headersBase = {
+          "Content-Type": "application/json",
+          ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}),
+        };
 
-        this.bags = this.bags.map((b) =>
-          b._id === bag._id ? { ...b, votes: data.votes } : b
-        );
-      } catch {
-        this.error = "Vote failed.";
+        const candidates = [
+          { url: `${API}/bag/${bag._id}/vote`, method: "PATCH", body: null },
+
+          { url: `${API}/bag/${bag._id}/vote`, method: "POST", body: null },
+          { url: `${API}/bag/${bag._id}/like`, method: "PATCH", body: null },
+          { url: `${API}/bag/${bag._id}/like`, method: "POST", body: null },
+
+          { url: `${API}/vote/${bag._id}`, method: "POST", body: null },
+          { url: `${API}/vote/${bag._id}`, method: "PATCH", body: null },
+          { url: `${API}/vote`, method: "POST", body: { bagId: bag._id } },
+          { url: `${API}/vote`, method: "POST", body: { bag: bag._id } },
+        ];
+
+        let lastError = "Vote failed.";
+        for (const c of candidates) {
+          let res;
+          try {
+            res = await fetch(c.url, {
+              method: c.method,
+              headers: headersBase,
+              ...(c.body ? { body: JSON.stringify(c.body) } : {}),
+            });
+          } catch (networkErr) {
+            lastError = "Network error tijdens vote.";
+            continue;
+          }
+
+          const data = await res.json().catch(() => ({}));
+
+          if (!res.ok) {
+            if (res.status === 401 || res.status === 403) {
+              lastError = "Je moet ingelogd zijn om te voten.";
+            } else if (res.status === 404) {
+              lastError = "Vote route bestaat niet (404).";
+            } else {
+              lastError = data?.message || `Vote failed (${res.status}).`;
+            }
+            continue;
+          }
+
+          const newVotes =
+            data?.votes ??
+            data?.bag?.votes ??
+            data?.bag?.likes ??
+            data?.likes ??
+            data?.updated?.votes ??
+            data?.updated?.likes ??
+            null;
+
+          this.bags = this.bags.map((b) => {
+            if (b._id !== bag._id) return b;
+
+            const merged = data?.bag && typeof data.bag === "object" ? { ...b, ...data.bag } : { ...b };
+
+            if (newVotes !== null && newVotes !== undefined) {
+              merged.votes = newVotes;
+            } else if (typeof merged.votes !== "number") {
+              merged.votes = (b.votes ?? 0) + 1;
+            }
+
+            return merged;
+          });
+
+          this.votingId = "";
+          return;
+        }
+
+        this.error = lastError;
+      } catch (e) {
+        this.error = e?.message || "Vote failed.";
       } finally {
         this.votingId = "";
       }
