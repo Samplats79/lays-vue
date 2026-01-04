@@ -34,12 +34,18 @@
 
         <div v-if="bags.length > 0" class="grid">
           <article v-for="bag in bags" :key="bag._id" class="bag">
-            <div class="bagPreview">
-              <img v-if="bag.image" class="bagImg" :src="bag.image" alt="Bag preview" />
-              <div v-else class="noImg">No preview</div>
+            <div class="preview">
+              <img
+                v-if="bag.image"
+                class="previewImg"
+                :src="bag.image"
+                alt="Bag preview"
+                loading="lazy"
+              />
+              <div v-else class="noPreview">No preview</div>
             </div>
 
-            <div class="bagBody">
+            <div class="bagContent">
               <div class="bagTop">
                 <h3 class="bagTitle">{{ bag.name || "Unnamed bag" }}</h3>
                 <span class="badge">{{ formatDate(bag.createdAt) }}</span>
@@ -66,7 +72,7 @@
 
               <div class="bagActions">
                 <button class="btn solid small" type="button" @click="vote(bag)" :disabled="votingId === bag._id">
-                  {{ votingId === bag._id ? "Voting..." : "Vote" }}
+                  {{ votingId === bag._id ? "Voting..." : "❤️ Vote" }}
                 </button>
 
                 <span class="votes">
@@ -119,8 +125,7 @@ export default {
           return;
         }
 
-        const list = Array.isArray(data) ? data : data?.bags || [];
-        this.bags = list;
+        this.bags = Array.isArray(data) ? data : data?.bags || [];
       } catch (e) {
         this.error = e?.message || "Failed to fetch";
         this.bags = [];
@@ -152,7 +157,9 @@ export default {
         }
 
         const updated = data?.bag || data;
-        this.bags = this.bags.map((b) => (b._id === bag._id ? { ...b, ...updated } : b));
+        this.bags = this.bags.map((b) =>
+          b._id === bag._id ? { ...b, ...updated } : b
+        );
       } catch (e) {
         this.error = e?.message || "Vote failed";
       } finally {
@@ -320,26 +327,30 @@ h1 {
   overflow: hidden;
 }
 
-.bagPreview {
-  height: 160px;
-  background: rgba(0, 0, 0, 0.04);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.preview {
+  width: 100%;
+  height: 220px;
+  background: #ffffff;
+  display: grid;
+  place-items: center;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 
-.bagImg {
+.previewImg {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+  background: #ffffff;
 }
 
-.noImg {
+.noPreview {
   font-weight: 900;
-  opacity: 0.55;
+  color: rgba(0, 0, 0, 0.5);
 }
 
-.bagBody {
+.bagContent {
   padding: 16px;
 }
 
