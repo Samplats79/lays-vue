@@ -10,12 +10,7 @@
         <div class="actions">
           <router-link class="btn outline" to="/">← Home</router-link>
           <router-link class="btn solid" to="/login">Create my own bag</router-link>
-          <button
-            class="btn outline"
-            type="button"
-            @click="loadBags"
-            :disabled="loading"
-          >
+          <button class="btn outline" type="button" @click="loadBags" :disabled="loading">
             {{ loading ? "Loading..." : "Refresh" }}
           </button>
         </div>
@@ -34,34 +29,33 @@
 
         <div v-if="bags.length > 0" class="grid">
           <article v-for="bag in bags" :key="bag._id" class="bag">
-            <div class="preview">
+            <div class="stage">
               <img
                 v-if="bag.image"
                 :src="bag.image"
                 alt="Bag preview"
-                class="previewImg"
+                class="bagCutout"
               />
               <div v-else class="noPreview">No preview</div>
             </div>
 
-            <div class="info">
-              <div class="creator">
-                by <b>{{ bag.name || "anonymous" }}</b>
-              </div>
+            <div class="meta">
+              <div class="creator">Made by <b>{{ bag.name || "anonymous" }}</b></div>
 
               <div class="bottom">
+                <div class="likes">
+                  <b>{{ bag.votes ?? 0 }}</b>
+                  <span class="emoji">👍</span>
+                </div>
+
                 <button
-                  class="btn solid small"
+                  class="voteBtn"
                   type="button"
                   @click="vote(bag)"
                   :disabled="votingId === bag._id"
                 >
-                  ❤️ Vote
+                  vote
                 </button>
-
-                <div class="votes">
-                  {{ bag.votes ?? 0 }}
-                </div>
               </div>
             </div>
           </article>
@@ -187,12 +181,6 @@ h1 {
   text-decoration: none;
 }
 
-.btn:focus,
-.btn:active {
-  text-decoration: none;
-  outline: none;
-}
-
 .btn.solid {
   background: #b10f0f;
   color: #fff;
@@ -202,11 +190,6 @@ h1 {
   background: #fff;
   color: #b10f0f;
   border-color: rgba(177, 15, 15, 0.6);
-}
-
-.btn.small {
-  padding: 8px 14px;
-  font-size: 14px;
 }
 
 .card {
@@ -222,54 +205,96 @@ h1 {
 }
 
 .bag {
-  border-radius: 20px;
-  background: #fff;
+  border-radius: 26px;
   overflow: hidden;
-  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.08);
+  background: linear-gradient(180deg, #151515 0%, #000 100%);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22);
+  transition: transform 0.22s ease;
 }
 
-.preview {
-  height: 260px;
-  background: linear-gradient(180deg, #ffffff 0%, #f4f4f4 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.bag:hover {
+  transform: translateY(-8px);
 }
 
-.previewImg {
-  max-height: 210px;
+.stage {
+  height: 320px;
+  display: grid;
+  place-items: center;
+  position: relative;
+  background: radial-gradient(circle at 50% 40%, #ffffff 0%, #f2f2f2 52%, #e8e8e8 100%);
+}
+
+.bagCutout {
+  max-height: 280px;
   max-width: 100%;
   object-fit: contain;
+  transform: translateY(0);
+  transition: transform 0.22s ease;
+  filter: drop-shadow(0 18px 18px rgba(0, 0, 0, 0.18));
+}
+
+.bag:hover .bagCutout {
+  transform: translateY(-12px);
 }
 
 .noPreview {
-  font-weight: 800;
-  opacity: 0.5;
+  font-weight: 900;
+  opacity: 0.6;
+  color: rgba(0, 0, 0, 0.7);
 }
 
-.info {
-  padding: 14px 16px;
+.meta {
+  padding: 14px 16px 18px;
+  color: #fff;
+  background: transparent;
 }
 
 .creator {
   font-weight: 900;
   margin-bottom: 10px;
+  text-align: center;
 }
 
 .bottom {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
-.votes {
+.likes {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-weight: 900;
-  font-size: 18px;
+}
+
+.emoji {
+  font-size: 16px;
+}
+
+.voteBtn {
+  border: none;
+  border-radius: 999px;
+  padding: 10px 18px;
+  font-weight: 900;
+  cursor: pointer;
+  background: #ffb300;
+  color: #000;
+  text-decoration: none;
+}
+
+.voteBtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.msg {
+  text-align: center;
+  font-weight: 900;
 }
 
 .error {
-  text-align: center;
-  font-weight: 900;
   color: #b10f0f;
 }
 
