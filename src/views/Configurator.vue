@@ -19,7 +19,6 @@ export default {
   name: "ConfiguratorView",
   data() {
     return {
-      // Zet hier je Vercel link van Three.js:
       threeUrl: "https://lays-threejs.vercel.app/",
     };
   },

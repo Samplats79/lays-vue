@@ -34,38 +34,45 @@
 
         <div v-if="bags.length > 0" class="grid">
           <article v-for="bag in bags" :key="bag._id" class="bag">
-            <div class="bagTop">
-              <h3 class="bagTitle">{{ bag.name || "Unnamed bag" }}</h3>
-              <span class="badge">{{ formatDate(bag.createdAt) }}</span>
+            <div class="bagPreview">
+              <img v-if="bag.image" class="bagImg" :src="bag.image" alt="Bag preview" />
+              <div v-else class="noImg">No preview</div>
             </div>
 
-            <div class="bagMeta">
-              <div class="metaRow">
-                <span class="k">Color</span>
-                <span class="v">{{ bag.bagColor || "-" }}</span>
+            <div class="bagBody">
+              <div class="bagTop">
+                <h3 class="bagTitle">{{ bag.name || "Unnamed bag" }}</h3>
+                <span class="badge">{{ formatDate(bag.createdAt) }}</span>
               </div>
-              <div class="metaRow">
-                <span class="k">Font</span>
-                <span class="v">{{ bag.font || "-" }}</span>
-              </div>
-              <div class="metaRow">
-                <span class="k">Pattern</span>
-                <span class="v">{{ bag.pattern || "-" }}</span>
-              </div>
-              <div class="metaRow">
-                <span class="k">User</span>
-                <span class="v">{{ bag.user || "anonymous" }}</span>
-              </div>
-            </div>
 
-            <div class="bagActions">
-              <button class="btn solid small" type="button" @click="vote(bag)" :disabled="votingId === bag._id">
-                {{ votingId === bag._id ? "Voting..." : "❤️ Vote" }}
-              </button>
+              <div class="bagMeta">
+                <div class="metaRow">
+                  <span class="k">Color</span>
+                  <span class="v">{{ bag.bagColor || "-" }}</span>
+                </div>
+                <div class="metaRow">
+                  <span class="k">Font</span>
+                  <span class="v">{{ bag.font || "-" }}</span>
+                </div>
+                <div class="metaRow">
+                  <span class="k">Pattern</span>
+                  <span class="v">{{ bag.pattern || "-" }}</span>
+                </div>
+                <div class="metaRow">
+                  <span class="k">User</span>
+                  <span class="v">{{ bag.user || "anonymous" }}</span>
+                </div>
+              </div>
 
-              <span class="votes">
-                Votes: <b>{{ bag.votes ?? 0 }}</b>
-              </span>
+              <div class="bagActions">
+                <button class="btn solid small" type="button" @click="vote(bag)" :disabled="votingId === bag._id">
+                  {{ votingId === bag._id ? "Voting..." : "Vote" }}
+                </button>
+
+                <span class="votes">
+                  Votes: <b>{{ bag.votes ?? 0 }}</b>
+                </span>
+              </div>
             </div>
           </article>
         </div>
@@ -102,9 +109,7 @@ export default {
         if (!API) throw new Error("VITE_API_URL ontbreekt in .env");
 
         const res = await fetch(`${API}/bag`, {
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
         });
 
         const data = await res.json().catch(() => ({}));
@@ -114,7 +119,8 @@ export default {
           return;
         }
 
-        this.bags = Array.isArray(data) ? data : data?.bags || [];
+        const list = Array.isArray(data) ? data : data?.bags || [];
+        this.bags = list;
       } catch (e) {
         this.error = e?.message || "Failed to fetch";
         this.bags = [];
@@ -303,15 +309,38 @@ h1 {
 .grid {
   display: grid;
   gap: 14px;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
 
 .bag {
   border-radius: 18px;
   border: 1px solid rgba(0, 0, 0, 0.1);
   background: rgba(255, 255, 255, 0.85);
-  padding: 16px;
   box-shadow: 0 10px 22px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.bagPreview {
+  height: 160px;
+  background: rgba(0, 0, 0, 0.04);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bagImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.noImg {
+  font-weight: 900;
+  opacity: 0.55;
+}
+
+.bagBody {
+  padding: 16px;
 }
 
 .bagTop {
