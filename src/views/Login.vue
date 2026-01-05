@@ -42,6 +42,22 @@
 </template>
 
 <script>
+function parseJwt(token) {
+  try {
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+        .join("")
+    );
+    return JSON.parse(jsonPayload);
+  } catch {
+    return null;
+  }
+}
+
 export default {
   name: "LoginView",
   data() {
@@ -91,8 +107,20 @@ export default {
         }
 
         localStorage.setItem("token", data.token);
-        this.ok = "Login OK – token opgeslagen";
 
+        const payload = parseJwt(data.token);
+        const isAdmin =
+          payload?.role === "admin" ||
+          payload?.email === "admin@admin.com" ||
+          this.email.trim().toLowerCase() === "admin@admin.com";
+
+        if (isAdmin) {
+          this.ok = "Admin login OK";
+          this.$router.push("/admin");
+          return;
+        }
+
+        this.ok = "Login OK – token opgeslagen";
         window.location.href = `${THREE}?token=${encodeURIComponent(data.token)}`;
       } catch (e) {
         this.error = e?.message || "API niet bereikbaar";

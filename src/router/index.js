@@ -21,6 +21,15 @@ const routes = [
     path: "/community",
     component: () => import("../views/Community.vue"),
   },
+
+  {
+    path: "/admin",
+    component: () => import("../views/Admin.vue"),
+  },
+  {
+    path: "/admin/bags",
+    component: () => import("../views/AdminBags.vue"),
+  },
 ];
 
 export default createRouter({
