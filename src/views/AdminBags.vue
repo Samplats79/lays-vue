@@ -2,7 +2,7 @@
   <main class="page">
     <div class="wrap">
       <header class="top">
-        <img class="logo" src="@@/assets/laysLogo.png" alt="Lay's" />
+        <img class="logo" src="@/assets/laysLogo.png" alt="Lay's" />
 
         <h1>Admin • Submissions</h1>
         <p class="subtitle">Bekijk alle ingezonden bags en verwijder submissions.</p>
