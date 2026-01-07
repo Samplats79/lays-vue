@@ -1,7 +1,7 @@
 <template>
   <div class="page">
     <div class="card">
-      <img class="logo" src="@/assets/images/laysLogo.png" alt="Lay's" />
+     <img class="logo" src="@/assets/laysLogo.png" alt="Lay's" />
 
       <h1>Login</h1>
       <p class="subtitle">Log in om jouw chips bag te maken en te saven.</p>

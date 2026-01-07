@@ -1,7 +1,7 @@
 <template>
   <main class="page">
     <img
-      src="@/assets/images/laysLogo.png"
+      src="@/assets/laysLogo.png"
       alt="Lay's logo"
       class="logo"
     />

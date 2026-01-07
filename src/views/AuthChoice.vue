@@ -1,6 +1,6 @@
 <template>
   <main class="page">
-    <img class="logo" src="@/assets/images/laysLogo.png" alt="Lay's" />
+    <img class="logo" src="@/assets/laysLogo.png" alt="Lay's" />
 
     <h1>Create your bag</h1>
     <p class="subtitle">

@@ -2,7 +2,7 @@
   <main class="page">
     <div class="wrap">
       <header class="top">
-        <img class="logo" src="@/assets/images/laysLogo.png" alt="Lay's" />
+        <img class="logo" src="@/assets/laysLogo.png" alt="Lay's" />
 
         <h1>Community</h1>
         <p class="subtitle">Bekijk community bags en stem op je favorieten.</p>
